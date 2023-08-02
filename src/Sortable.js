@@ -93,6 +93,7 @@ function _dispatchEvent(info) {
 
 
 let dragEl,
+	toDropTouchedEls = [],
 	parentEl,
 	ghostEl,
 	rootEl,
@@ -387,6 +388,7 @@ function Sortable(el, options) {
 		delay: 0,
 		delayOnTouchOnly: false,
 		touchStartThreshold: (Number.parseInt ? Number : window).parseInt(window.devicePixelRatio, 10) || 1,
+		emulateDragEventsOnTouch: false,
 		forceFallback: false,
 		fallbackClass: 'sortable-fallback',
 		fallbackOnBody: false,
@@ -762,17 +764,41 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 			dragEl.parentNode[expando]._isOutsideThisEl(target);
 
 			if (parent) {
+				if (this.options.emulateDragEventsOnTouch) {
+					toDropTouchedEls.forEach((el) => { el.visited = false})
+				}
 				do {
 					if (parent[expando]) {
 						let inserted;
 
-						inserted = parent[expando]._onDragOver({
+						let newEvent = {
 							clientX: touchEvt.clientX,
 							clientY: touchEvt.clientY,
 							target: target,
-							rootEl: parent
-						});
-
+							rootEl: parent,
+						}
+						if (this.options.emulateDragEventsOnTouch) {
+							if (!toDropTouchedEls.some((el) => {
+									if (el.target == target) {
+										el.visited = true
+										newEvent.type = 'dragover'
+										return true
+									}
+									return false
+								})
+							) {
+								// not found
+								newEvent.type = 'dragenter'
+								let el = {
+									visited: true,
+									target: target,
+									rootEl: parent,
+									parentExpando: parent[expando],
+								}
+								toDropTouchedEls.push(el)
+							}
+						}
+						inserted = parent[expando]._onDragOver(newEvent);
 						if (inserted && !this.options.dragoverBubble) {
 							break;
 						}
@@ -782,6 +808,27 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 				}
 				/* jshint boss:true */
 				while (parent = parent.parentNode);
+
+				if (this.options.emulateDragEventsOnTouch) {
+					let needMoreEvents = true
+					toDropTouchedEls = toDropTouchedEls.filter((el) => {
+						if (el.visited) {
+							return true
+						}
+						if (needMoreEvents) {
+							let newEvent = {
+								clientX: touchEvt.clientX,
+								clientY: touchEvt.clientY,
+								target: el.target,
+								rootEl: el.rootEl,
+								type: 'dragleave',
+							}
+							let inserted = el.parentExpando._onDragOver(newEvent);
+							needMoreEvents = !(inserted && !this.options.dragoverBubble);
+						}
+						return false
+					})
+				}
 			}
 
 			_unhideGhostForTarget();
