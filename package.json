@@ -1,7 +1,7 @@
 {
 	"name": "sortablejs",
 	"exportName": "Sortable",
-	"version": "1.15.0",
+	"version": "1.0.0",
 	"devDependencies": {
 		"@babel/core": "^7.4.4",
 		"@babel/plugin-transform-object-assign": "^7.2.0",
@@ -29,12 +29,13 @@
 		"test": "node ./scripts/test.js"
 	},
 	"maintainers": [
+		"silversed <141088165+silversed@users.noreply.github.com>",
 		"Konstantin Lebedev <ibnRubaXa@gmail.com>",
 		"Owen Mills <owen23355@gmail.com>"
 	],
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/SortableJS/Sortable.git"
+		"url": "git://github.com/silversed/Sortable.git"
 	},
 	"files": [
 		"Sortable.js",
@@ -50,7 +51,8 @@
 		"ng-sortable",
 		"react",
 		"vue",
-		"mixin"
+		"mixin",
+		"touch"
 	],
 	"license": "MIT"
 }
