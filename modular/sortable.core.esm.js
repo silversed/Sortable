@@ -1690,7 +1690,6 @@ Sortable.prototype = /** @lends Sortable.prototype */{
           toggleClass(target, options.targetClass, true);
           lastTargetPutInside = target;
           lastTargetPutInsideClass = options.targetClass;
-          putSortable = this;
         } else if (evt.type === 'dragleave') {
           if (lastTargetPutInside && lastTargetPutInside === target) {
             toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
