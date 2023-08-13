@@ -252,3 +252,42 @@ input[type=range]:focus::-ms-fill-upper {
 .highlight {
 	background-color: #B7F8C7;
 }
+
+:root {
+	--fnf-color-1: skyblue;
+	--fnf-color-2: pink;
+}
+
+.file-1 {
+	background-color: var(--fnf-color-1);
+}
+
+.file-2 {
+	background-color: var(--fnf-color-2);
+}
+
+.folder-l {
+	background-color: var(--fnf-color-1);
+	background-clip: padding-box;
+	border-width: 0.3rem !important;
+	border-color: transparent;
+}
+
+.folder-r {
+	background-color: var(--fnf-color-2);
+	background-clip: padding-box;
+	border-width: 0.3rem !important;
+	border-color: transparent;
+}
+
+.folder-active {
+	border-color: white;
+}
+
+#example2a-files-in-folder2 {
+	display: none;
+}
+
+.sortable-target {
+	font-weight: bold;
+}
