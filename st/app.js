@@ -1,6 +1,9 @@
 var example1 = document.getElementById('example1'),
 	example2Left = document.getElementById('example2-left'),
 	example2Right = document.getElementById('example2-right'),
+	example2aFolders = document.getElementById('example2a-folders'),
+	example2aFilesInFolder1 = document.getElementById('example2a-files-in-folder1'),
+	example2aFilesInFolder2 = document.getElementById('example2a-files-in-folder2'),
 	example3Left = document.getElementById('example3-left'),
 	example3Right = document.getElementById('example3-right'),
 	example4Left = document.getElementById('example4-left'),
@@ -29,6 +32,69 @@ new Sortable(example2Right, {
 	group: 'shared',
 	animation: 150
 });
+
+
+// Example 2a - Folders and files
+new Sortable(example2aFolders, {
+	group: {
+		name: 'folders',
+		putInside: ['files1', 'files2'],
+	},
+	targetClass: "sortable-target",
+	animation: 150,
+});
+
+new Sortable(example2aFilesInFolder1, {
+	group: 'files1',
+	animation: 150,
+	onEnd: onEnd,
+});
+
+new Sortable(example2aFilesInFolder2, {
+	group: 'files2',
+	animation: 150,
+	onEnd: onEnd,
+});
+
+function onEnd(evt) {
+	let targetEl = evt.explicitOriginalTarget;
+	let dragEl = evt.item;
+
+	let target_list_id = undefined;
+	if (targetEl.id === 'folder-1') {
+		target_list_id = 'example2a-files-in-folder1';
+	}
+	else if (targetEl.id === 'folder-2') {
+		target_list_id = 'example2a-files-in-folder2';
+	}
+	if (target_list_id) {
+		let target_list = document.getElementById(target_list_id);
+		if (target_list) {
+			target_list.appendChild(dragEl);
+		}
+	}
+}
+
+function folderActivate(evt) {
+	for (let i = 0;  i < evt.target.parentNode.children.length; i++) {
+		let child = evt.target.parentNode.children[i];
+		child.className = child.className.replace(" folder-active", "");
+	}
+	evt.target.className += " folder-active";
+
+	folderLists = document.getElementsByClassName("folder-file-list");
+	for (let i = 0;  i < folderLists.length; i++) {
+		if (evt.target.id === "folder-1" && folderLists[i].id === "example2a-files-in-folder1"
+			|| evt.target.id === "folder-2" && folderLists[i].id === "example2a-files-in-folder2"
+			) {
+				folderLists[i].style.display = "block";
+		}
+		else {
+			folderLists[i].style.display = "none";
+		}
+	}
+}
+
 
 // Example 3 - Cloning
 new Sortable(example3Left, {

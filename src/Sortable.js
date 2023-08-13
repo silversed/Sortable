@@ -124,6 +124,9 @@ let dragEl,
 
 	moved,
 
+	lastTargetPutInside,
+	lastTargetPutInsideClass,
+	lastTargetPutInsideClone,
 	lastTarget,
 	lastDirection,
 	pastFirstInvertThresh = false,
@@ -280,6 +283,7 @@ let dragEl,
 		group.name = originalGroup.name;
 		group.checkPull = toFn(originalGroup.pull, true);
 		group.checkPut = toFn(originalGroup.put);
+		group.checkPutInside = toFn(originalGroup.putInside);
 		group.revertClone = originalGroup.revertClone;
 
 		options.group = group;
@@ -1167,6 +1171,38 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 		dragOverEvent('dragOver');
 		if (Sortable.eventCanceled) return completedFired;
 
+		let pullInside = activeGroup.checkPull(this, activeSortable, dragEl, evt);
+		let putInside = group.checkPutInside(this, activeSortable, dragEl, evt);
+		if (pullInside && putInside && target !== el && !el.contains(dragEl)) {
+			lastTargetPutInsideClone = (pullInside === 'clone');
+			dragRect = getRect(dragEl);
+			targetRect = getRect(target);
+			if (onMove(rootEl, el, dragEl, dragRect, target, targetRect, evt, true) !== false) {
+				capture();
+
+				if (evt.type === 'dragenter') {
+					if (lastTargetPutInside && lastTargetPutInside !== target) {
+						toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
+					}
+					toggleClass(target, options.targetClass, true);
+					lastTargetPutInside = target;
+					lastTargetPutInsideClass = options.targetClass;
+					putSortable = this;
+				}
+				else if (evt.type === 'dragleave') {
+					if (lastTargetPutInside && lastTargetPutInside === target) {
+						toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
+						lastTargetPutInside = undefined;
+						lastTargetPutInsideClass = undefined;
+					}
+				}
+
+				changed();
+				return completed(false);
+			}
+			return false;
+		}
+
 		if (
 			dragEl.contains(evt.target) ||
 			target.animated && target.animatingX && target.animatingY ||
@@ -1440,12 +1476,32 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 
 			ghostEl && ghostEl.parentNode && ghostEl.parentNode.removeChild(ghostEl);
 
-			if (rootEl === parentEl || (putSortable && putSortable.lastPutMode !== 'clone')) {
+			if (rootEl === parentEl || (putSortable && putSortable.lastPutMode !== 'clone')
+				&& (!lastTargetPutInsideClone)
+			) {
 				// Remove clone(s)
 				cloneEl && cloneEl.parentNode && cloneEl.parentNode.removeChild(cloneEl);
 			}
 
 			if (dragEl) {
+				if (lastTargetPutInside) {
+					let targetSortable = Sortable.get(lastTargetPutInside.parentNode);
+					if (targetSortable) {
+						let cloneParent = dragEl.parentNode;
+						dragEl.parentNode.removeChild(dragEl);
+						if (lastTargetPutInsideClone) {
+							cloneParent.appendChild(cloneEl);
+							this._showClone(targetSortable);
+						}
+					}
+					if (lastTargetPutInsideClass) {
+						toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
+					}
+					lastTargetPutInside = undefined;
+					lastTargetPutInsideClass = undefined;
+					lastTargetPutInsideClone = undefined;
+				}
+
 				if (this.nativeDraggable) {
 					off(dragEl, 'dragend', this);
 				}
@@ -1758,7 +1814,7 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 	},
 
 	_showClone: function(putSortable) {
-		if (putSortable.lastPutMode !== 'clone') {
+		if (putSortable.lastPutMode !== 'clone' && !lastTargetPutInsideClone) {
 			this._hideClone();
 			return;
 		}
