@@ -870,10 +870,10 @@ const documentExists = typeof document !== 'undefined',
     return ret;
   },
   _prepareGroup = function (options) {
-    function toFn(value, pull) {
+    function toFn(value, pull, putInside) {
       return function (to, from, dragEl, evt) {
         let sameGroup = to.options.group.name && from.options.group.name && to.options.group.name === from.options.group.name;
-        if (value == null && (pull || sameGroup)) {
+        if (value == null && (pull || sameGroup && !putInside)) {
           // Default pull value
           // Default pull and put value if same group
           return true;
@@ -882,7 +882,7 @@ const documentExists = typeof document !== 'undefined',
         } else if (pull && value === 'clone') {
           return value;
         } else if (typeof value === 'function') {
-          return toFn(value(to, from, dragEl, evt), pull)(to, from, dragEl, evt);
+          return toFn(value(to, from, dragEl, evt), pull, putInside)(to, from, dragEl, evt);
         } else {
           let otherGroup = (pull ? to : from).options.group.name;
           return value === true || typeof value === 'string' && value === otherGroup || value.join && value.indexOf(otherGroup) > -1;
@@ -897,9 +897,9 @@ const documentExists = typeof document !== 'undefined',
       };
     }
     group.name = originalGroup.name;
-    group.checkPull = toFn(originalGroup.pull, true);
-    group.checkPut = toFn(originalGroup.put);
-    group.checkPutInside = toFn(originalGroup.putInside);
+    group.checkPull = toFn(originalGroup.pull, true, false);
+    group.checkPut = toFn(originalGroup.put, false, false);
+    group.checkPutInside = toFn(originalGroup.putInside, false, true);
     group.revertClone = originalGroup.revertClone;
     options.group = group;
   },
