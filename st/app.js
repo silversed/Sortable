@@ -57,7 +57,7 @@ new Sortable(example2aFilesInFolder2, {
 });
 
 function onEnd(evt) {
-	let targetEl = evt.explicitOriginalTarget;
+	let targetEl = evt.originalEvent.target;
 	let dragEl = evt.item;
 
 	let target_list_id = undefined;

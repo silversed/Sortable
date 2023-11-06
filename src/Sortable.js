@@ -338,7 +338,7 @@ let nearestEmptyInsertDetectEvent = function(evt) {
 
 
 let _checkOutsideTargetEl = function(evt) {
-	if (dragEl) {
+	if (dragEl && dragEl.parentNode) {
 		dragEl.parentNode[expando]._isOutsideThisEl(evt.target);
 	}
 };
@@ -1135,10 +1135,12 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 
 			// no bubbling and not fallback
 			if (!options.dragoverBubble && !evt.rootEl && target !== document) {
-				dragEl.parentNode[expando]._isOutsideThisEl(evt.target);
+				if (dragEl.parentNode) {
+					dragEl.parentNode[expando]._isOutsideThisEl(evt.target);
 
-				// Do not detect for empty insert if already inserted
-				!insertion && nearestEmptyInsertDetectEvent(evt);
+					// Do not detect for empty insert if already inserted
+					!insertion && nearestEmptyInsertDetectEvent(evt);
+				}
 			}
 
 			!options.dragoverBubble && evt.stopPropagation && evt.stopPropagation();
@@ -1181,6 +1183,9 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 				capture();
 
 				if (evt.type === 'dragenter') {
+					if (dragEl.parentNode) {
+						dragEl.parentNode.removeChild(dragEl);
+					}
 					if (lastTargetPutInside && lastTargetPutInside !== target) {
 						toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
 					}
@@ -1196,7 +1201,6 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 					}
 				}
 
-				changed();
 				return completed(false);
 			}
 			return false;
@@ -1487,7 +1491,6 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 					let targetSortable = Sortable.get(lastTargetPutInside.parentNode);
 					if (targetSortable) {
 						let cloneParent = dragEl.parentNode;
-						dragEl.parentNode.removeChild(dragEl);
 						if (lastTargetPutInsideClone) {
 							cloneParent.appendChild(cloneEl);
 							this._showClone(targetSortable);
@@ -1496,9 +1499,6 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 					if (lastTargetPutInsideClass) {
 						toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
 					}
-					lastTargetPutInside = undefined;
-					lastTargetPutInsideClass = undefined;
-					lastTargetPutInsideClone = undefined;
 				}
 
 				if (this.nativeDraggable) {
@@ -1562,6 +1562,15 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 							originalEvent: evt
 						});
 					}
+					else if (lastTargetPutInside) {
+						// Remove event
+						_dispatchEvent({
+							sortable: this,
+							name: 'remove',
+							toEl: parentEl,
+							originalEvent: evt
+						});
+					}
 
 					putSortable && putSortable.save();
 				} else {
@@ -1587,7 +1596,7 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 
 				if (Sortable.active) {
 					/* jshint eqnull:true */
-					if (newIndex == null || newIndex === -1) {
+					if (!lastTargetPutInside && (newIndex == null || newIndex === -1)) {
 						newIndex = oldIndex;
 						newDraggableIndex = oldDraggableIndex;
 					}
@@ -1603,7 +1612,9 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 					this.save();
 				}
 			}
-
+			lastTargetPutInside = undefined;
+			lastTargetPutInsideClass = undefined;
+			lastTargetPutInsideClone = undefined;
 		}
 		this._nulling();
 	},
