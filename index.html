@@ -104,8 +104,8 @@ new Sortable(example2Right, {
 		<div id="folders-and-files" class="row ps-0">
 			<h4 class="col-12">Folders and files</h4>
 			<div id="example2a-folders" class="list-group col-4">
-				<div id="folder-1" onclick="folderActivate(event)" class="list-group-item tablinks folder-l folder-active">Folder 1</div>
-				<div id="folder-2" onclick="folderActivate(event)" class="list-group-item tablinks folder-r">Folder 2</div>
+				<div id="folder-1" onclick="folderActivate(event)" class="list-group-item tablinks folder-1 folder-active">Folder 1</div>
+				<div id="folder-2" onclick="folderActivate(event)" class="list-group-item tablinks folder-2">Folder 2</div>
 			</div>
 
 			<div id="example2a-files-in-folder1" class="list-group folder-file-list col-8">
@@ -128,6 +128,8 @@ new Sortable(example2Right, {
 			<div style="padding: 0" class="col-12">
 <pre class="prettyprint">
 	new Sortable(example2aFolders, {
+		delay: 100,
+		delayOnTouchOnly: "true",
 		group: {
 			name: 'folders',
 			putInside: ['files1', 'files2'],
@@ -143,7 +145,10 @@ new Sortable(example2Right, {
 	});
 	
 	new Sortable(example2aFilesInFolder2, {
-		group: 'files2',
+		group: {
+			name: 'files2',
+			pull: 'clone'
+		},
 		animation: 150,
 		onEnd: onEnd,
 	});

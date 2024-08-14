@@ -1936,8 +1936,8 @@
           capture();
 
           if (evt.type === 'dragenter') {
-            if (dragEl.parentNode) {
-              dragEl.parentNode.removeChild(dragEl);
+            if (!lastTargetPutInsideClone) {
+              css(dragEl, 'display', 'none');
             }
 
             if (lastTargetPutInside && lastTargetPutInside !== target) {
@@ -1949,6 +1949,10 @@
             lastTargetPutInsideClass = options.targetClass;
           } else if (evt.type === 'dragleave') {
             if (lastTargetPutInside && lastTargetPutInside === target) {
+              if (!lastTargetPutInsideClone) {
+                css(dragEl, 'display', '');
+              }
+
               toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
               lastTargetPutInside = undefined;
               lastTargetPutInsideClass = undefined;
@@ -2218,6 +2222,10 @@
               }
             }
 
+            if (!lastTargetPutInsideClone) {
+              css(dragEl, 'display', '');
+            }
+
             if (lastTargetPutInsideClass) {
               toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
             }
@@ -2320,11 +2328,20 @@
               newDraggableIndex = oldDraggableIndex;
             }
 
+            let event_orig = evt; // for touch devices original events occur on dragged item
+            //	so we should replace it with the proper target
+
+            if (lastTargetPutInside && isDeviceTouchable()) {
+              event_orig = {
+                target: lastTargetPutInside
+              };
+            }
+
             _dispatchEvent({
               sortable: this,
               name: 'end',
               toEl: parentEl,
-              originalEvent: evt
+              originalEvent: event_orig
             }); // Save sorting
 
 

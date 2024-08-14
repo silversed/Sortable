@@ -30,7 +30,7 @@ function userAgent(pattern) {
   }
 }
 
-function isTouchEnabled() {
+function isDeviceTouchable() {
   return 'ontouchstart' in window || navigator.maxTouchPoints > 0 || navigator.msMaxTouchPoints > 0;
 }
 const IE11OrLess = userAgent(/(?:Trident.*rv[ :]?11\.|msie|iemobile|Windows Phone)/i);
@@ -1142,7 +1142,7 @@ function Sortable(el, options) {
     delay: 0,
     delayOnTouchOnly: false,
     touchStartThreshold: (Number.parseInt ? Number : window).parseInt(window.devicePixelRatio, 10) || 1,
-    emulateDragEventsOnTouch: isTouchEnabled(),
+    emulateDragEventsOnTouch: isDeviceTouchable(),
     forceFallback: false,
     fallbackClass: 'sortable-fallback',
     fallbackOnBody: false,
@@ -1154,9 +1154,6 @@ function Sortable(el, options) {
     supportPointer: Sortable.supportPointer !== false && 'PointerEvent' in window && !Safari,
     emptyInsertThreshold: 5
   };
-  console.log('here');
-  console.log(window);
-  console.log(navigator);
   PluginManager.initializePlugins(this, el, defaults); // Set default options
 
   for (let name in defaults) {
@@ -1933,8 +1930,8 @@ Sortable.prototype =
         capture();
 
         if (evt.type === 'dragenter') {
-          if (dragEl.parentNode) {
-            dragEl.parentNode.removeChild(dragEl);
+          if (!lastTargetPutInsideClone) {
+            css(dragEl, 'display', 'none');
           }
 
           if (lastTargetPutInside && lastTargetPutInside !== target) {
@@ -1946,6 +1943,10 @@ Sortable.prototype =
           lastTargetPutInsideClass = options.targetClass;
         } else if (evt.type === 'dragleave') {
           if (lastTargetPutInside && lastTargetPutInside === target) {
+            if (!lastTargetPutInsideClone) {
+              css(dragEl, 'display', '');
+            }
+
             toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
             lastTargetPutInside = undefined;
             lastTargetPutInsideClass = undefined;
@@ -2215,6 +2216,10 @@ Sortable.prototype =
             }
           }
 
+          if (!lastTargetPutInsideClone) {
+            css(dragEl, 'display', '');
+          }
+
           if (lastTargetPutInsideClass) {
             toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
           }
@@ -2317,11 +2322,20 @@ Sortable.prototype =
             newDraggableIndex = oldDraggableIndex;
           }
 
+          let event_orig = evt; // for touch devices original events occur on dragged item
+          //	so we should replace it with the proper target
+
+          if (lastTargetPutInside && isDeviceTouchable()) {
+            event_orig = {
+              target: lastTargetPutInside
+            };
+          }
+
           _dispatchEvent({
             sortable: this,
             name: 'end',
             toEl: parentEl,
-            originalEvent: evt
+            originalEvent: event_orig
           }); // Save sorting
 
 
@@ -2357,8 +2371,6 @@ Sortable.prototype =
       case 'dragenter':
       case 'dragleave':
       case 'dragover':
-        console.log('event type: ' + evt.type);
-
         if (dragEl) {
           this._onDragOver(evt);
 

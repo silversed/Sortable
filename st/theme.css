@@ -266,14 +266,14 @@ input[type=range]:focus::-ms-fill-upper {
 	background-color: var(--fnf-color-2);
 }
 
-.folder-l {
+.folder-1 {
 	background-color: var(--fnf-color-1);
 	background-clip: padding-box;
 	border-width: 0.3rem !important;
 	border-color: transparent;
 }
 
-.folder-r {
+.folder-2 {
 	background-color: var(--fnf-color-2);
 	background-clip: padding-box;
 	border-width: 0.3rem !important;
