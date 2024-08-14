@@ -36,6 +36,8 @@ new Sortable(example2Right, {
 
 // Example 2a - Folders and files
 new Sortable(example2aFolders, {
+	delay: 100,
+	delayOnTouchOnly: "true",
 	group: {
 		name: 'folders',
 		putInside: ['files1', 'files2'],
@@ -51,7 +53,10 @@ new Sortable(example2aFilesInFolder1, {
 });
 
 new Sortable(example2aFilesInFolder2, {
-	group: 'files2',
+	group: {
+		name: 'files2',
+		pull: 'clone'
+	},
 	animation: 150,
 	onEnd: onEnd,
 });

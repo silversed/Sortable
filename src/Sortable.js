@@ -7,7 +7,7 @@
 
 import { version } from '../package.json';
 
-import { IE11OrLess, Edge, FireFox, Safari, IOS, ChromeForAndroid } from './BrowserInfo.js';
+import { IE11OrLess, Edge, FireFox, Safari, IOS, ChromeForAndroid, isDeviceTouchable } from './BrowserInfo.js';
 
 import AnimationStateManager from './Animation.js';
 
@@ -392,7 +392,7 @@ function Sortable(el, options) {
 		delay: 0,
 		delayOnTouchOnly: false,
 		touchStartThreshold: (Number.parseInt ? Number : window).parseInt(window.devicePixelRatio, 10) || 1,
-		emulateDragEventsOnTouch: false,
+		emulateDragEventsOnTouch: isDeviceTouchable(),
 		forceFallback: false,
 		fallbackClass: 'sortable-fallback',
 		fallbackOnBody: false,
@@ -1183,8 +1183,8 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 				capture();
 
 				if (evt.type === 'dragenter') {
-					if (dragEl.parentNode) {
-						dragEl.parentNode.removeChild(dragEl);
+					if (!lastTargetPutInsideClone) {
+						css(dragEl, 'display', 'none');
 					}
 					if (lastTargetPutInside && lastTargetPutInside !== target) {
 						toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
@@ -1195,6 +1195,9 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 				}
 				else if (evt.type === 'dragleave') {
 					if (lastTargetPutInside && lastTargetPutInside === target) {
+						if (!lastTargetPutInsideClone) {
+							css(dragEl, 'display', '');
+						}
 						toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
 						lastTargetPutInside = undefined;
 						lastTargetPutInsideClass = undefined;
@@ -1496,6 +1499,9 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 							this._showClone(targetSortable);
 						}
 					}
+					if (!lastTargetPutInsideClone) {
+						css(dragEl, 'display', '');
+					}
 					if (lastTargetPutInsideClass) {
 						toggleClass(lastTargetPutInside, lastTargetPutInsideClass, false);
 					}
@@ -1600,12 +1606,21 @@ Sortable.prototype = /** @lends Sortable.prototype */ {
 						newIndex = oldIndex;
 						newDraggableIndex = oldDraggableIndex;
 					}
+					let event_orig = evt;
+					// for touch devices original events occur on dragged item
+					//	so we should replace it with the proper target
+					if (lastTargetPutInside && isDeviceTouchable())
+					{
+						event_orig = {
+							target: lastTargetPutInside,
+						};
+					}
 
 					_dispatchEvent({
 						sortable: this,
 						name: 'end',
 						toEl: parentEl,
-						originalEvent: evt
+						originalEvent: event_orig
 					});
 
 					// Save sorting
